@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数字华容道</title>
+  <style>
+    body {
+    font-family: Arial, sans-serif; /* 设置全局字体为Arial和sans-serif字体族 */
+    display: flex; /* 设置body为弹性布局，方便居中对齐 */
+    justify-content: center; /* 使弹性容器内的元素在水平方向上居中对齐 */
+    align-items: top; /* 使弹性容器内的元素在垂直方向上顶部对齐 */
+    min-height: 100vh; /* 设置body的最小高度为100%的视口高度，确保body始终充满屏幕 */
+    margin: 0; /* 移除body的默认外边距 */
+    background-color: #f0f0f0; /* 设置body的背景颜色为浅灰色 */
+    }
+    .container {
+      width: 400px; /* 设置容器的宽度为400px */
+      background-color: white;  /* 设置容器的背景颜色为白色 */
+      padding: 16px;    /* 设置容器的内边距为16px */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 设置容器的阴影 */
+    }
+    h1 {
+      text-align: center;   /* 设置标题的文本居中对齐 */
+      margin-bottom: 16px;  /* 设置标题的下边距为16px */
+        font-size: 28px;  /* 设置标题的字体大小为24px */
+        font-weight: bold;  /* 设置标题的字体粗细为粗体 */
+        color: #013400; /* 设置标题的字体颜色为绿色 */
+    }
+    .buttons {
+      display: flex;    /* 设置按钮组为弹性布局，方便水平排列 */
+      justify-content: space-between;   /* 使弹性容器内的元素在水平方向上均匀分布 */
+      margin-bottom: 16px;  /* 设置按钮组的下边距为16px */
+    }
+    button {
+      cursor: pointer;  /* 设置按钮的鼠标样式为手型 */
+      width: 180px; /* 设置按钮的宽度为180px */
+      height: 40px; /* 设置按钮的高度为40px */
+        border: none; /* 移除按钮的边框 */
+        border-radius: 4px; /* 设置按钮的圆角为4px */
+        background-color: #0c5601;    /* 设置按钮的背景颜色为绿色 */
+        color: white; /* 设置按钮的文本颜色为白色 */
+        font-size: 16px;    /* 设置按钮的字体大小为16px */
+        font-weight: bold;  /* 设置按钮的字体粗细为粗体 */
+    }
+    .score {
+      display: flex;    /* 设置计分板为弹性布局，方便水平排列 */
+      justify-content: center; /* 使弹性容器内的元素在水平方向上居中对齐 */
+      align-items: center; /* 使弹性容器内的元素在垂直方向上居中对齐 */
+      margin-bottom: 16px;  /* 设置计分板的下边距为16px */
+      font-size: 15px; /* 设置字体大小为24px */
+      font-weight: bold; /* 设置字体为粗体 */ 
+      color: #013400; /* 设置字体颜色为黑色 */
+      
+    }
+    .grid {
+      display: grid;    /* 设置网格为网格布局 */
+      grid-template-columns: repeat(4, 1fr);    /* 设置网格的列数为4，每列宽度为1fr */
+      gap: 2px;  /* 设置网格的行列间距为2px */
+      width: 392px; /* 设置网格的宽度为392px */
+      margin:0 auto;  /* 设置网格的左右外边距为auto，使网格居中对齐 */
+    }
+    .tile {
+      width: 96px;  /* 设置网格项的宽度为96px */
+      height: 96px; /* 设置网格项的高度为96px */
+      display: flex;    /* 设置网格项为弹性布局，方便居中对齐 */
+      justify-content: center;  /* 使弹性容器内的元素在水平方向上居中对齐 */
+      align-items: center;  /* 使弹性容器内的元素在垂直方向上居中对齐 */
+      background-color: #4CAF50;    /* 设置网格项的背景颜色为绿色 */
+      color: white; /* 设置网格项的文本颜色为白色 */
+      font-size: 24px;  /* 设置网格项的字体大小为24px */
+      font-weight: bold;    /* 设置网格项的字体粗细为粗体 */
+    }
+    .empty {
+      background-color: white;  /* 设置空白网格项的背景颜色为白色 */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>数字华容道</h1>
+    <div class="buttons">
+      <button id="start">开始游戏</button>  <!-- 设置开始游戏按钮的id为start -->
+      <button id="end" disabled>结束游戏</button>   <!-- 设置结束游戏按钮的id为end -->
+    </div>
+    <div class="score">
+      <div>计时：<span id="timer">0</span></div>    <!-- 设置计时器的id为timer -->
+      <div style="margin: 0 16px;">|</div>
+      <div>步数：<span id="steps">0</span></div>    <!-- 设置步数计数器的id为steps -->
+    </div>
+    <div class="grid" id="grid"></div>  <!-- 设置网格的id为grid -->
+  </div>
+  <script>
+    const startBtn = document.getElementById('start');
+const endBtn = document.getElementById('end');
+const timerEl = document.getElementById('timer');
+const stepsEl = document.getElementById('steps');
+const gridEl = document.getElementById('grid');
+
+let timer = 0;
+let steps = 0;
+let gameInterval = null;
+
+function createTile(value) {
+  const tile = document.createElement('div');
+  tile.classList.add('tile');
+  if (value) {
+    tile.textContent = value;
+  } else {
+    tile.classList.add('empty');
+    tile.textContent = '';
+  }
+  return tile;
+}
+
+function renderInitialGrid() {
+  gridEl.innerHTML = '';
+  for (let i = 1; i <= 15; i++) {
+    gridEl.appendChild(createTile(i));
+  }
+  gridEl.appendChild(createTile(null));
+  gridEl.lastElementChild.classList.add('empty');
+}
+
+function shuffleGrid() {
+  const tiles = Array.from(gridEl.children);
+  for (let i = tiles.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+  }
+  gridEl.innerHTML = '';
+  tiles.forEach(tile => gridEl.appendChild(tile));
+}
+
+function rowColToIndex(row, col) {
+  return row * 4 + col;
+}
+
+function indexToRowCol(index) {
+  const row = Math.floor(index / 4);
+  const col = index % 4;
+  return [row, col];
+}
+
+function isValidMove(tile) {
+  const clickedTileIndex = Array.from(gridEl.children).indexOf(tile);
+  const emptyTileIndex = Array.from(gridEl.children).indexOf(gridEl.querySelector('.empty'));
+
+  const [row1, col1] = indexToRowCol(clickedTileIndex);
+  const [row2, col2] = indexToRowCol(emptyTileIndex);
+
+  return (row1 === row2 || col1 === col2);
+}
+
+function moveTile(tile) {
+  const clickedTileIndex = Array.from(gridEl.children).indexOf(tile);
+  const emptyTileIndex = Array.from(gridEl.children).indexOf(gridEl.querySelector('.empty'));
+
+  const [row1, col1] = indexToRowCol(clickedTileIndex);
+  const [row2, col2] = indexToRowCol(emptyTileIndex);
+
+  const tiles = Array.from(gridEl.children);
+
+  if (row1 === row2) {
+    const step = col1 < col2 ? 1 : -1;
+    for (let col = col1; col !== col2; col += step) {
+      const currentIndex = rowColToIndex(row1, col);
+      const nextIndex = rowColToIndex(row1, col + step);
+      [tiles[currentIndex], tiles[nextIndex]] = [tiles[nextIndex], tiles[currentIndex]];
+    }
+  } else if (col1 === col2) {
+    const step = row1 < row2 ? 1 : -1;
+    for (let row = row1; row !== row2; row += step) {
+      const currentIndex = rowColToIndex(row, col1);
+      const nextIndex = rowColToIndex(row + step, col1);
+      [tiles[currentIndex], tiles[nextIndex]] = [tiles[nextIndex], tiles[currentIndex]];
+    }
+  } else {
+    return;
+  }
+
+  renderGrid();
+}
+
+
+function isSolved() {
+  const tiles = Array.from(gridEl.children);
+  for (let i = 0; i < tiles.length - 1; i++) {
+    if (tiles[i].textContent !== (i + 1).toString()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+gridEl.addEventListener('click', (e) => {
+  if (gameInterval === null) {
+    return;
+  }
+
+  const tile = e.target;
+  if (!tile.classList.contains('tile') || tile.classList.contains('empty')) {
+    return;
+  }
+
+  if (!isValidMove(tile)) {
+    return;
+  }
+
+  moveTile(tile);
+  steps++;
+  stepsEl.textContent = steps;
+
+  if (isSolved()) {
+    clearInterval(gameInterval);
+    gameInterval = null;
+    alert(`恭喜宁，游戏成功！总计用时：${formatTime(timer)}，总步数：${steps}`);
+    startBtn.disabled = false;
+    endBtn.disabled = true;
+  }
+});
+
+function renderGrid() {
+  const tiles = Array.from(gridEl.children);
+  gridEl.innerHTML = '';
+  tiles.forEach(tile => gridEl.appendChild(tile));
+}
+
+const formatTime = (timeInSeconds) => {
+  const minutes = Math.floor(timeInSeconds / 60);
+  const seconds = timeInSeconds % 60;
+  return `${minutes}分${seconds}秒`;
+};
+
+startBtn.addEventListener('click', () => {
+  shuffleGrid();
+  steps = 0;
+  stepsEl.textContent = steps;
+  timer = 0;
+  timerEl.textContent = formatTime(timer);
+  gameInterval = setInterval(() => {
+    timer++;
+    timerEl.textContent = formatTime(timer);
+  }, 1000);
+  startBtn.disabled = true;
+  endBtn.disabled = false;
+});
+
+endBtn.addEventListener('click', () => {
+  clearInterval(gameInterval);
+  gameInterval = null;
+  renderInitialGrid();
+  timer = 0;
+  timerEl.textContent = formatTime(timer);
+  steps = 0;
+  stepsEl.textContent = steps;
+  startBtn.disabled = false;
+  endBtn.disabled = true;
+});
+
+renderInitialGrid();
+
+</script>
+
+</body>
+</html>
